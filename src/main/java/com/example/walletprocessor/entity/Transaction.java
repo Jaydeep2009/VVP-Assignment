@@ -3,12 +3,14 @@ package com.example.walletprocessor.entity;
 import com.example.walletprocessor.entity.enums.TransactionStatus;
 import com.example.walletprocessor.entity.enums.TransactionType;
 import jakarta.persistence.*;
+import org.springframework.data.domain.Persistable;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 
 @Entity
 @Table(name = "transaction")
-public class Transaction {
+public class Transaction implements Persistable<String> {
 
     @Id
     @Column(name = "transaction_id", nullable = false)
@@ -38,6 +40,9 @@ public class Transaction {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    @Transient
+    private boolean isNew = true;
+
     @PrePersist
     protected void onCreate() {
         createdAt = Instant.now();
@@ -47,6 +52,22 @@ public class Transaction {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = Instant.now();
+    }
+
+    @PostPersist
+    @PostLoad
+    protected void markNotNew() {
+        this.isNew = false;
+    }
+
+    @Override
+    public String getId() {
+        return transactionId;
+    }
+
+    @Override
+    public boolean isNew() {
+        return isNew;
     }
 
     // Constructors
